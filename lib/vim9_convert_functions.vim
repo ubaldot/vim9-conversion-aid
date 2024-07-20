@@ -7,7 +7,7 @@ export def TransformBuffer(...bufnr: list<string>)
     source_bufnr = bufnr(bufnr[0])
   endif
 
-  new
+  enew
   var new_bufnr = bufnr('%')
 
   # Get the content of the source buffer
