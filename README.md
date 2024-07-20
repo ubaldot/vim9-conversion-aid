@@ -15,7 +15,7 @@ What it is supposed to do:
   definitions,
 * remove all occurrences of `call`,
 * remove all occurrences of `a:` and `s:`,
-* replace `#{` with `{` in dictionaries,
+* replace `#{` with `{`,
 * replace comment string `"` with `#`,
 * add spaces before and after `=`,
 * add spaces before and after `:` in list slicing (e.g. [1:3] becomes [1 :
