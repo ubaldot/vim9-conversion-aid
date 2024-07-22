@@ -46,6 +46,8 @@ export def TransformBuffer(...bufnr: list<string>)
       ->substitute('\[\s*\(\w*\)\s*:\s*\(\w*\)\s*\]', '[\1 : \2] ', 'g')
       # Remove line continuation
       ->substitute('\(^\s*\)\\', '\1', 'g')
+      # Replace v:true, v:false with true, false
+      ->substitute('v:\([true, false]\)', '\1', 'g')
     endif
 
     # Replace 'let' with 'var' where it is needed

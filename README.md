@@ -11,10 +11,9 @@ What it is supposed to do:
 
 * replace all occurrences of `func`, `function`, etc. with `def` and `enddef`,
 * replace comment string `"` with `#`,
-* fix variables defined as `let`,
-* remove all occurrences of `a:` and `s:`,
-* add needed leading/trailing space for symbols like `=, , , :`, etc. as
-  needed,
+* fix variables defined with `let`,
+* replace `v:true, v:false` with `true, false`,
+* add needed leading/trailing space for symbols like `=, :`, etc. as needed,
 * Remove line continuation symbol `\`,
 * ... and more.
 
@@ -23,8 +22,8 @@ as optional argument.
 
 To be on the safe side, start Vim with `vim --clean` and then source the
 plugin manually (i.e.
-`:source /path/to/vim9-conversion-aid/plugin/vim9-conversion-aid.vim` and then
-use `Vim9Convert`.
+`:source /path/to/vim9-conversion-aid/plugin/vim9-conversion-aid.vim`), and
+then use `Vim9Convert`.
 
 At this point, if you source the converted script you will most likely have
 errors, but the error messages should tell you what shall be fixed and how.
@@ -51,7 +50,9 @@ let s:a = 3
 
 * It won't fix string concatenation if `.` does not have a leading and a
   trailer white-space,
+* Functions with variables arguments won't be fixed,
+* It won't remove `eval`,
 * Lambda expressions will not be fixed,
-* Vim9 semantics updates and datatypes shall be handled manually.
+* Vim9 syntax/semantics updates and datatypes shall be handled manually.
 * But there is certainly more. If you find some, please open an issue or send
   a PR.
