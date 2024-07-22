@@ -9,24 +9,41 @@ conversion process.
 
 What it is supposed to do:
 
-* replace all occurrences of `func`, `function`, `func!`, `function!` with
-  `def` and `endfunction` and `endfunc` with `enddef`,
-* fix `let` with `var` and remove `let` from global and buffer-local variables
-  definitions,
-* remove all occurrences of `call`,
-* remove all occurrences of `a:` and `s:`,
-* replace `#{` with `{`,
+* replace all occurrences of `func`, `function`, etc. with `def` and `enddef`,
 * replace comment string `"` with `#`,
-* add spaces before and after `=`,
-* add spaces before and after `:` in list slicing (e.g. [1:3] becomes [1 :
-  3]),
-* place a space after `,` and remove spaces before `,`.
+* fix variables defined as `let`,
+* remove all occurrences of `a:` and `s:`,
+* add needed leading/trailing space for symbols like `=, , , :`, etc. as
+  needed,
+* Remove line continuation symbol `\`,
+* ... and more.
 
 There is only one command available which is `Vim9Convert` that takes a buffer
 as optional argument.
 
-The remaining work of adding types, fixing dictionaries, handling line
-continuations, etc. shall be done manually. If you source the converted script
-you will most likely have errors, but the error messages should tell you what
-shall be fixed and how. Also, mind that `:h vim9` can be a great support for
-fixing the remaining errors.
+If you source the converted script you will most likely have errors, but the
+error messages should tell you what shall be fixed and how. Also, mind that
+`:h vim9` can be a great support for fixing the remaining errors.
+
+## Limitations
+
+The tool works better if the original script is not written in a fancy way. As
+said, don't expect miracles and consider the following limitations;
+
+* No inline comments, e.g. the following won't be fixed:
+
+```
+let s:a = 3 # This is a comment
+```
+
+The following will be fixed:
+
+```
+# This is a comment
+let s:a = 3
+```
+
+* It won't fix string concatenation if `.` does not have a leading and a
+  trailer whitespace
+* Lambda expressions will not be fixed,
+* Vim9 semantics updates and datatypes shall be handled manually.

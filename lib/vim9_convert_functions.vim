@@ -33,26 +33,20 @@ export def TransformBuffer(...bufnr: list<string>)
       ->substitute('#{', '{', 'g')
       # Remove function('')
       ->substitute('function([''"]\(\w*\)[''"])', '\1', 'g')
-      # Space before and af, see previous substituteter =
+      # Space before and after =
       ->substitute('=\(\S\)', '= \1', 'g')
       ->substitute('\(\S\)=', '\1 =', 'g')
-      # TODO: the following two could be merged
-      # space after ',' - no space before ','
-      # ->substitute(',\(\w\)', ', \1', 'g')
-      # ->substitute('\s*,', ',', 'g')
       # space after ':' or ',' - no space before ':' or ','
       ->substitute('\([,:]\)\(\w\)', '\1 \2', 'g')
       ->substitute('\(\w\)\s*\([,:]\)', '\1\2', 'g')
       # String concatenation
       ->substitute('\s\+\.\s\+', ' \.\.\ ', 'g')
       # Surrounding space between : in brackets[1:3] => [1 : 3]
-      # ->substitute('[\(\w*\)\s*:', '[\1 :', 'g')
+      # TODO: I assumes that what is inside a list is a \w* and not a \S*
       ->substitute('\[\s*\(\w*\)\s*:\s*\(\w*\)\s*\]', '[\1 : \2] ', 'g')
-      # In dictionaries, space after : (TODO: verify)
-      #  . to .. in string concatenation (TODO:)
-      #  Maybe you cannot do that if there is line continuation
+      # Remove line continuation
+      ->substitute('\(^\s*\)\\', '\1', 'g')
     endif
-
 
     # Replace 'let' with 'var' where it is needed
     if transformed_line =~ '^\s*let\s'
