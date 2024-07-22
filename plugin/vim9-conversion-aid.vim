@@ -10,11 +10,11 @@ def Echoerr(msg: string)
   echohl ErrorMsg | echom $'[vim9-conversion-aid] {msg}' | echohl None
 enddef
 
-if exists('g:vim9_conversion_aid_loaded')
-    Echoerr('Plugin already loaded')
-    finish
-endif
-g:vim9_conversion_aid_loaded = true
+# if exists('g:vim9_conversion_aid_loaded')
+#     Echoerr('Plugin already loaded')
+#     finish
+# endif
+# g:vim9_conversion_aid_loaded = true
 
 import autoload '../lib/vim9_convert_functions.vim' as vim9conv
 
