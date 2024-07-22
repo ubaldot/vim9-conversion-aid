@@ -1,4 +1,4 @@
-# vim9-conversion-aid
+# vim9-conversion-aid (WIP)
 
 A little help for upgrading to Vim9.
 
@@ -56,12 +56,26 @@ The following will be fixed:
 let s:a = 3
 ```
 
-* Variables defined at top-level scope with `let` will not be prepended with
-  `g:`,
-* It cannot recognize function local variables,
+* Global variables defined at top-level scope with `let` will not be prepended
+  with `g:`, you must explicitly add `g:` to such variables,
+* The tool cannot distinguish between function local variables, function
+  arguments, and global variables. That is, if you have something like the
+  following:
+
+```
+function MyFunc()
+   let foo = 3
+   return bar
+endfunction
+
+let foo = MyFunc()
+```
+
+* If you have function local variables that shadow global variables you may
+  run into problems
 * It won't fix string concatenation if `.` does not have a leading and a
   trailer white-space,
-* Functions with variables arguments won't be fixed,
+* Functions with variable number of arguments won't be fixed,
 * It won't remove `eval`,
 * Lambda expressions will not be fixed,
 * Vim9 syntax/semantics updates and datatypes shall be handled manually.

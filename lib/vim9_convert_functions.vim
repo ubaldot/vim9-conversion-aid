@@ -8,6 +8,7 @@ export def TransformBuffer(...bufnr: list<string>)
   endif
 
   vertical new
+  # UBA
   setlocal bufhidden=wipe
   var new_bufnr = bufnr('%')
 
@@ -17,8 +18,11 @@ export def TransformBuffer(...bufnr: list<string>)
   # Initialize a list to append transformed lines
   var transformed_lines = ['vim9script', '']
 
-  var already_declared_vars = []
+  var already_declared_script_local_vars = []
+  var already_declared_function_local_vars = []
   var transformed_line = ''
+  var inside_function = false
+
   for line in source_lines
     # Comments " -> #
     transformed_line = line ->substitute('^\s*"', (m) => $'{m[0][: -2]}#', 'g')
@@ -30,7 +34,7 @@ export def TransformBuffer(...bufnr: list<string>)
       ->substitute('abort', '', 'g')
       ->substitute('\v(endfunction|endfunc)', 'enddef', 'g')
        # Remove all occurrences of 'call', Remove all occurrences of 'a:' and 's:'
-      ->substitute('\v(a:|s:|call\s)', '', 'g')
+      ->substitute('call\s', '', 'g')
       # Replace '#{' with '{' in dictionaries
       ->substitute('#{', '{', 'g')
       # Remove function('') for funcref
@@ -55,38 +59,71 @@ export def TransformBuffer(...bufnr: list<string>)
       # spaces)
       ->substitute('v:\([true, false]\)', '\1'[2 : ], 'g')
     endif
-    # echom transformed_line->substitute('\[\s*\(\w\+\)\s*:\s*\(\w\+\)\s*\]', '[\1 : \2]', 'g')
 
+    # Flag to mark that you are inside a function
+    if transformed_line =~ '^def'
+        inside_function = true
+    elseif transformed_line =~ '^enddef'
+        inside_function = false
+        already_declared_function_local_vars = []
+    endif
+
+    # UBA: Adjust based on if you are inside a function.
     if transformed_line =~ '^\s*let\s'
-      # If it is g:, b:, etc.
-      # OBS! At this point you should have the form 'g: foo' because the ':'
-      # should be already manipulated
+      # Scope explicitly present, i.e. 'let g:foo', 'let b:bar', 'let t:baz',
       if transformed_line =~ '^\s*let\s\+[bwtgv]:'
+        # OBS! At this point you should have the form 'g: foo' because you
+        # already added a trailing white-space ad removed leading white-space to all the ':' before.
         transformed_line = transformed_line->substitute('let\s', '', 'g')
-      # If it is script-local
-      else
+
+      # Otherwise, if it is script-local....
+      elseif !inside_function
         # Exclude initial 'let' string before appending the variable name to
-        # the list already_declared_vars, e.g. 'let foo = bar' becomes 'foo'
-        # echom already_declared_vars
-        # var var_name = transformed_line->substitute('\s*let\s\+\(\w\+\)\(\s*[=.\[]\s*.*\)', '\1', '')
-        var var_name = transformed_line->substitute('\s*let\s\+\(\w\+\)\(\s*.*\)', '\1', '')
-        if index(already_declared_vars, var_name) == -1
+        # the list already_declared_script_local_vars, e.g. 'let foo = bar' becomes 'foo'
+        # echom already_declared_script_local_vars
+        # UBA: Must distinguish between global variables defined as 'let foo' and script local variables defined as 'let s:bar'.
+        var var_name = transformed_line->substitute('\s*let\s\+\(s:\s\)\?\(\w\+\)\(\s*.*\)', '\1\2', '')
+        # var var_name = transformed_line->substitute('\s*let\s\+\(s:\)\?\(\w\+\)', '\2', '')
+        # var var_name = transformed_line->substitute('\s*let\s\+\(s:\)\?\(\w\+\)', '\1\2', '')
+        if index(already_declared_script_local_vars, var_name) == -1 && var_name =~ '^s:'
           transformed_line = transformed_line->substitute('let\s', 'var ', 'g')
           # echom transformed_line
-          add(already_declared_vars, var_name)
+          add(already_declared_script_local_vars, var_name)
+        elseif index(already_declared_script_local_vars, var_name) == -1
+          transformed_line = transformed_line->substitute('let\s', 'g: ', 'g')
+          # echom transformed_line
+          add(already_declared_script_local_vars, var_name)
         else
           transformed_line = transformed_line->substitute('let\s', '', 'g')
+        endif
+      # Otherwise if it is function local
+      elseif inside_function
+        # UBA you also have to adjust this, if you have a s: variable or a
+        # local variable.
+        # var var_name = transformed_line->substitute('\s*let\s\+\(\w\+\)\(\s*[=.\[]\s*.*\)', '\1', '')
+        var var_name = transformed_line->substitute('\s*let\s\+\(s:\s\|a:\s\)\?\(\w\+\)\(\s*.*\)', '\1\2', '')
+        echom var_name
+        if index(already_declared_function_local_vars, var_name) == -1 && index(already_declared_script_local_vars, var_name) == -1
+          transformed_line = transformed_line->substitute('let\s', 'var ', 'g')
+          # echom transformed_line
+          add(already_declared_function_local_vars, var_name)
+        else
+          transformed_line = transformed_line->substitute('let\s', 'g:', 'g')
         endif
       endif
     endif
 
-    # Recompact b: w: t: g: v: from b : foo to b:foo.
-    transformed_line = transformed_line->substitute('\(\W\)\([bwtgv]\)\s:\s', '\1\2:', 'g')
+    # Re-compact b: w: t: g: v: from 'b : foo' to 'b:foo'. The leading char of
+    # b: could be a non-word OR the beginning of the line
+    # Also, get rid off the old s: and a:.
+    transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
+    transformed_line = transformed_line->substitute('\(\W\|^\)\([bwtgv]\)\s*:\s*', '\1\2:', 'g')
 
+    #
     # Append the transformed line to the list
     add(transformed_lines, transformed_line)
   endfor
-  echom already_declared_vars
+  echom already_declared_script_local_vars
 
   # Set the content of the new buffer to the transformed lines
   setbufline(new_bufnr, 1, transformed_lines)
@@ -108,14 +145,14 @@ enddef
 #       # If it is script-local
 #       else
 #         # Exclude initial 'let' string before appending the variable name to
-#         # the list already_declared_vars, e.g. 'let foo = bar' becomes 'foo'
-#         # echom already_declared_vars
+#         # the list already_declared_script_local_vars, e.g. 'let foo = bar' becomes 'foo'
+#         # echom already_declared_script_local_vars
 #         # var var_name = manipulated_line->substitute('\s*let\s\+\(\w\+\)\(\s*[=.\[]\s*.*\)', '\1', '')
 #         var var_name = manipulated_line->substitute('\s*let\s\+\(\w\+\)\(\s*.*\)', '\1', '')
-#         if index(already_declared_vars, var_name) == -1
+#         if index(already_declared_script_local_vars, var_name) == -1
 #           manipulated_line = manipulated_line->substitute('let\s', 'var ', 'g')
 #           # echom manipulated_line
-#           add(already_declared_vars, var_name)
+#           add(already_declared_script_local_vars, var_name)
 #         else
 #           manipulated_line = manipulated_line->substitute('let\s', '', 'g')
 #         endif
