@@ -7,7 +7,7 @@ export def TransformBuffer(...bufnr: list<string>)
     source_bufnr = bufnr(bufnr[0])
   endif
 
-  enew
+  new
   var new_bufnr = bufnr('%')
 
   # Get the content of the source buffer
@@ -33,21 +33,21 @@ export def TransformBuffer(...bufnr: list<string>)
       ->substitute('#{', '{', 'g')
       # Remove function('')
       ->substitute('function([''"]\(\w*\)[''"])', '\1', 'g')
-      # Space before and after =
+      # Space before and af, see previous substituteter =
       ->substitute('=\(\S\)', '= \1', 'g')
       ->substitute('\(\S\)=', '\1 =', 'g')
       # TODO: the following two could be merged
       # space after ',' - no space before ','
-      ->substitute(',\(\w\)', ', \1', 'g')
-      ->substitute('\s*,', ',', 'g')
-      # space after ':' - no space before ':'
-      ->substitute(':\(\w\)', ': \1', 'g')
-      ->substitute('\s*:', ':', 'g')
+      # ->substitute(',\(\w\)', ', \1', 'g')
+      # ->substitute('\s*,', ',', 'g')
+      # space after ':' or ',' - no space before ':' or ','
+      ->substitute('\([,:]\)\(\w\)', '\1 \2', 'g')
+      ->substitute('\(\w\)\s*\([,:]\)', '\1\2', 'g')
       # String concatenation
-      ->substitute('\s*\.\s*', ' \.\.\ ', 'g')
+      ->substitute('\s\+\.\s\+', ' \.\.\ ', 'g')
       # Surrounding space between : in brackets[1:3] => [1 : 3]
-      ->substitute('[\(\S*\):', '[\1 :', 'g')
-      ->substitute('[*:\(\S*\)\]', ': \1] ', 'g')
+      # ->substitute('[\(\w*\)\s*:', '[\1 :', 'g')
+      ->substitute('\[\s*\(\w*\)\s*:\s*\(\w*\)\s*\]', '[\1 : \2] ', 'g')
       # In dictionaries, space after : (TODO: verify)
       #  . to .. in string concatenation (TODO:)
       #  Maybe you cannot do that if there is line continuation
@@ -56,7 +56,8 @@ export def TransformBuffer(...bufnr: list<string>)
 
     # Replace 'let' with 'var' where it is needed
     if transformed_line =~ '^\s*let\s'
-      # If it is g:, b:, etc.
+      # If it is g:, b:, etc. OBS! You have it already spaced as g: a, see
+      # previous substitute
       if transformed_line =~ '^\s*let\s\w:'
         transformed_line = transformed_line
             ->substitute('let\s', '', 'g')
