@@ -25,6 +25,14 @@ plugin manually (i.e.
 `:source /path/to/vim9-conversion-aid/plugin/vim9-conversion-aid.vim`), and
 then use `Vim9Convert`.
 
+Also, before running the script, be sure that your script meets at least these
+two requirements before running `Vim9Convert`:
+
+* Add a `g:` to the variables that you want to define globally, e.g.
+  `let my_global` shall be `let g:my_global`,
+* Secure that the string concatenation operator has a leading and a trailing
+  white-space.
+
 At this point, if you source the converted script you will most likely have
 errors, but the error messages should tell you what shall be fixed and how.
 Also, mind that `:h vim9` can be a great support for fixing the remaining
@@ -48,11 +56,15 @@ The following will be fixed:
 let s:a = 3
 ```
 
+* Variables defined at top-level scope with `let` will not be prepended with
+  `g:`,
+* It cannot recognize function local variables,
 * It won't fix string concatenation if `.` does not have a leading and a
   trailer white-space,
 * Functions with variables arguments won't be fixed,
 * It won't remove `eval`,
 * Lambda expressions will not be fixed,
 * Vim9 syntax/semantics updates and datatypes shall be handled manually.
-* But there is certainly more. If you find some, please open an issue or send
-  a PR.
+
+... but there is certainly more. If you find some bugs, please open an issue
+or send a PR.

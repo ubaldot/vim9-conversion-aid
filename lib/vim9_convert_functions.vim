@@ -26,6 +26,7 @@ export def TransformBuffer(...bufnr: list<string>)
     transformed_line = transformed_line
        # Replace all occurrences of 'func' with 'def'
       ->substitute('\v(func!?|function!?)\s', 'def ', 'g')
+      ->substitute('abort', '', 'g')
        # Remove all occurrences of 'call', Remove all occurrences of 'a:' and 's:'
       ->substitute('\v(a:|s:|call\s)', '', 'g')
       ->substitute('endfunction', 'enddef', 'g')
@@ -39,22 +40,25 @@ export def TransformBuffer(...bufnr: list<string>)
       # space after ':' or ',' - no space before ':' or ','
       ->substitute('\([,:]\)\(\w\)', '\1 \2', 'g')
       ->substitute('\(\w\)\s*\([,:]\)', '\1\2', 'g')
+      # Surrounding space between : in brackets[1:3] => [1 : 3]
+      # I assumes that what is inside a list is a \w* and not a \S*
+      ->substitute('\[\s*\(\w\+\)\s*:\s*\(\w\+\)\s*\]', '[\1 : \2]', 'g')
       # String concatenation
       ->substitute('\s\+\.\s\+', ' \.\.\ ', 'g')
-      # Surrounding space between : in brackets[1:3] => [1 : 3]
-      # TODO: I assumes that what is inside a list is a \w* and not a \S*
-      ->substitute('\[\s*\(\w*\)\s*:\s*\(\w*\)\s*\]', '[\1 : \2] ', 'g')
       # Remove line continuation
       ->substitute('\(^\s*\)\\', '\1', 'g')
-      # Replace v:true, v:false with true, false
-      ->substitute('v:\([true, false]\)', '\1', 'g')
+      # Replace v:true, v:false with true, false (OBS! We need to remove v:
+      # spaces)
+      ->substitute('v:\([true, false]\)', '\1'[2 : ], 'g')
     endif
+    # echom transformed_line
 
     # Replace 'let' with 'var' where it is needed
     if transformed_line =~ '^\s*let\s'
       # If it is g:, b:, etc. OBS! You have it already spaced as g: a, see
       # previous substitute
-      if transformed_line =~ '^\s*let\s\w:'
+      if transformed_line =~ '^\s*let\s\+\w:'
+        # Use 'let\s\+' to move the variable to the left of the screen
         transformed_line = transformed_line
             ->substitute('let\s', '', 'g')
             ->substitute(':\s', ':', 'g')
@@ -62,9 +66,11 @@ export def TransformBuffer(...bufnr: list<string>)
       else
         # Exclude initial 'let' string before appending the variable name to
         # the list already_declared_vars, e.g. 'let foo = bar' becomes 'foo'
-        var var_name = line->matchstr('let\s*\w*')[4 : ]
+        # echom already_declared_vars
+        var var_name = transformed_line->substitute('\s*let\s\+\(\w\+\)\(\s*[=.\[]\s*.*\)', '\1', '')
         if index(already_declared_vars, var_name) == -1
           transformed_line = transformed_line->substitute('let\s', 'var ', 'g')
+          # echom transformed_line
           add(already_declared_vars, var_name)
         else
           transformed_line = transformed_line->substitute('let\s', '', 'g')
