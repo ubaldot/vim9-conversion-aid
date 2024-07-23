@@ -2,6 +2,12 @@ vim9script
 
 export def TransformBuffer(...bufnr: list<string>)
 
+  var fix_let = false
+
+  if exists('g:vim9_conversion_aid_fix_let')
+    fix_let = g:vim9_conversion_aid_fix_let
+  endif
+
   var source_bufnr = bufnr('%')
   if empty(source_bufnr)
     source_bufnr = bufnr(bufnr[0])
@@ -28,99 +34,114 @@ export def TransformBuffer(...bufnr: list<string>)
     transformed_line = line ->substitute('^\s*"', (m) => $'{m[0][: -2]}#', 'g')
 
     if !(transformed_line =~ '^\s*#')
-    transformed_line = transformed_line
-       # Replace all occurrences of 'func', etc. with 'def', etc
-      ->substitute('\v(^func!?|^function!?)\s', 'def ', 'g')
-      ->substitute('abort', '', 'g')
-      ->substitute('\v(endfunction|endfunc)', 'enddef', 'g')
-       # Remove all occurrences of 'call', Remove all occurrences of 'a:' and 's:'
-      ->substitute('call\s', '', 'g')
-      # Replace '#{' with '{' in dictionaries
-      ->substitute('#{', '{', 'g')
-      # Remove function('') for funcref
-      ->substitute('\vfunction\([''"](\w*)[''"]\)', '\1', 'g')
-      # Leading and trailing white-space for = and ==
-      ->substitute('\v(\=+)(\S)', '\1 \2', 'g')
-      ->substitute('\v(\S)(\=+)', '\1 \2', 'g')
-      # space after ':' or ',' - no space before ':' or ','
-      # TODO: It replaces only the first match
-      ->substitute('\v([,:])(\S)', '\1 \2', 'g')
-      ->substitute('\v\s*([,:])', '\1', 'g')
-      # Surrounding space between : in brackets[1:3] => [1 : 3]
-      # I assumes that what is inside a list is a \w* and not a \S*
-      ->substitute('\v\[\s*(\w+)\s*:\s*(\w+)\s*\]', '[\1 : \2]', 'g')
-      # String concatenation
-      ->substitute('\s\+\.\s\+', ' \.\.\ ', 'g')
-      # Remove line continuation
-      ->substitute('\v(^\s*)\\', '\1', 'g')
-      # Replace v:true, v:false with true, false (OBS! We need to remove v:
-      # spaces)
-      ->substitute('v:\([true, false]\)', '\1'[2 : ], 'g')
+      transformed_line = transformed_line
+        # Replace all occurrences of 'func', etc. with 'def', etc
+        ->substitute('\v(^func!?|^function!?)\s', 'def ', 'g')
+        ->substitute('abort', '', 'g')
+        ->substitute('\v(endfunction|endfunc)', 'enddef', 'g')
+        # Remove all occurrences of 'call', Remove all occurrences of 'a:' and 's:'
+        ->substitute('call\s', '', 'g')
+        # Replace '#{' with '{' in dictionaries
+        ->substitute('#{', '{', 'g')
+        # Remove function('') for funcref
+        ->substitute('\vfunction\([''"](\w*)[''"]\)', '\1', 'g')
+        # Leading and trailing white-space for = and ==
+        ->substitute('\v(\=+)(\S)', '\1 \2', 'g')
+        ->substitute('\v(\S)(\=+)', '\1 \2', 'g')
+        # space after ':' or ',' - no space before ':' or ','
+        # TODO: It replaces only the first match
+        ->substitute('\v([,:])(\S)', '\1 \2', 'g')
+        ->substitute('\v\s*([,:])', '\1', 'g')
+        # Surrounding space between : in brackets[1:3] => [1 : 3]
+        # I assumes that what is inside a list is a \w* and not a \S*
+        ->substitute('\v\[\s*(\w+)\s*:\s*(\w+)\s*\]', '[\1 : \2]', 'g')
+        # String concatenation
+        ->substitute('\s\+\.\s\+', ' \.\.\ ', 'g')
+        # Remove line continuation
+        ->substitute('\v(^\s*)\\', '\1', 'g')
+        # Replace v:true, v:false with true, false (OBS! We need to remove v:
+        # spaces)
+        ->substitute('v:\([true, false]\)', '\1'[2 : ], 'g')
     endif
 
+    # ------------------------ let management ---------------------------
     # OBS! All the : have a trailing space, e.g. 'b: foo', 's: bar' , etc.
     # This will be taken into account below.
 
-    if transformed_line =~ '^def'
+    if fix_let
+      if transformed_line =~ '^def'
         inside_function = true
-    elseif transformed_line =~ '^enddef'
+      elseif transformed_line =~ '^enddef'
         inside_function = false
         already_declared_function_local_vars = []
-    endif
+      endif
 
-    # OBS! At this point you should have the form 'g: foo' because you
-    # already added a trailing white-space white-space to all the ':' before.
-    if transformed_line =~ '^\s*let\s'
-      # Store variable name that you need later on
-      var var_name = transformed_line->matchlist('\v\s*let\s+([sabwtgv]:\s)?(\w+)\W')[1 : 2]->join('')
-      echom var_name
+      # OBS! At this point you should have the form 'g: foo' because you
+      # already added a trailing white-space white-space to all the ':' before.
+      if transformed_line =~ '^\s*let\s'
+        # Store variable name without 'let'.
+        var var_name = transformed_line->matchlist('\v\s*let\s+([sabwtgv]:\s)?(\w+)\W')[1 : 2]->join('')
+        # echom var_name
 
-      # Remove 'let' from all the variables, with the exception of s:
-      if transformed_line =~ '^\s*let\s\+[bwtgv]:'
-        transformed_line = transformed_line->substitute('let\s\+', '', 'g')
-
-      # For s: defined variables you need 'var' or nothing
-      elseif !inside_function
-        # s: handling
-        if index(already_declared_script_local_vars, var_name) == -1 && var_name =~ '^s: '
-          transformed_line = transformed_line->substitute('let\s\+', 'var ', 'g')
-          add(already_declared_script_local_vars, var_name)
-        elseif index(already_declared_script_local_vars, var_name) != -1 && var_name =~ '^s: '
+        # Remove 'let' from all the lines containing variables, with the exception of s: and
+        # '' (e.g. 'let foo'). The latter because 'let foo" can be either
+        # global or function scoped and must be handled in both cases
+        if var_name =~ '^[bwtgv]:'
           transformed_line = transformed_line->substitute('let\s\+', '', 'g')
-          add(already_declared_script_local_vars, var_name)
-        # g: handling
-        else
-          transformed_line = transformed_line->substitute('let\s\+', 'g:', 'g')
         endif
-      # Otherwise if it is function local
-      elseif inside_function
-        if transformed_line =~ 'let\s\+a:'
-          transformed_line = transformed_line->substitute('let\s\+', '', 'g')
-        elseif index(already_declared_function_local_vars, var_name) == -1 && index(already_declared_script_local_vars, var_name) == -1
-          transformed_line = transformed_line->substitute('let\s\+', 'var ', 'g')
-          add(already_declared_function_local_vars, var_name)
-        elseif index(already_declared_function_local_vars, var_name) != -1 && index(already_declared_script_local_vars, var_name) == -1
-          transformed_line = transformed_line->substitute('let\s\+', '', 'g')
-        # Already declared script-local. It can be s: or g:
-        elseif transformed_line =~ 'let\s\+s:'
-          transformed_line = transformed_line->substitute('let\s\+', '', 'g')
+
+        # For s: you need 'var' or '' but you have to also consider possible function scopes
+        # For 'let foo' you need 'g:' or 'var', depending where 'let foo'
+        # appears
+        # Script scope
+        if !inside_function
+          if var_name =~ '^s: '
+            if index(already_declared_script_local_vars, var_name) == -1
+              transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
+              add(already_declared_script_local_vars, var_name)
+            elseif index(already_declared_script_local_vars, var_name) != -1
+              transformed_line = transformed_line->substitute('let\s\+', '', '')
+            endif
+          elseif var_name !~ '^[sabwtgv]: '
+            transformed_line = transformed_line->substitute('let\s\+', 'g: ', '')
+          endif
+        # Function scope
         else
-          transformed_line = transformed_line->substitute('let\s\+', 'g:', 'g')
+          if var_name =~ '^s: '
+            # if transformed_line =~ 'let\s\+a:'
+            #   transformed_line = transformed_line->substitute('let\s\+', '', 'g')
+            if index(already_declared_function_local_vars, var_name) == -1 && index(already_declared_script_local_vars, var_name) == -1
+              transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
+              add(already_declared_function_local_vars, var_name)
+            # elseif index(already_declared_function_local_vars, var_name) != -1 && index(already_declared_script_local_vars, var_name) == -1
+            #   transformed_line = transformed_line->substitute('let\s\+', '', 'g')
+            else
+              transformed_line = transformed_line->substitute('let\s\+', '', '')
+            endif
+          elseif var_name !~ '^[sabwtgv]: '
+            if index(already_declared_function_local_vars, var_name) == -1
+              transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
+              add(already_declared_function_local_vars, var_name)
+            else
+              transformed_line = transformed_line->substitute('let\s\+', '', '')
+            endif
+          endif
         endif
       endif
+
+        # Re-compact b: w: t: g: v: a:, s: e.g. from 'b : foo' to 'b:foo'. The leading char of
+        # b: could be a non-word OR the beginning of the line
+        transformed_line = transformed_line->substitute('\(\W\|^\)\([asbwtgv]\)\s*:\s*', '\1\2:', 'g')
+
+        # Also, get rid off the old s: and a:.
+        # transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
     endif
 
-    # Re-compact b: w: t: g: v: a:, s: e.g. from 'b : foo' to 'b:foo'. The leading char of
-    # b: could be a non-word OR the beginning of the line
-    # Also, get rid off the old s: and a:.
-    transformed_line = transformed_line->substitute('\(\W\|^\)\([asbwtgv]\)\s*:\s*', '\1\2:', 'g')
-    # transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
-
-    #
-    # Append the transformed line to the list
-    add(transformed_lines, transformed_line)
+      #
+      # Append the transformed line to the list
+      add(transformed_lines, transformed_line)
   endfor
-  echom already_declared_script_local_vars
+  # echom already_declared_script_local_vars
 
   # Set the content of the new buffer to the transformed lines
   setbufline(new_bufnr, 1, transformed_lines)
@@ -158,3 +179,4 @@ enddef
 
 #     return manipulated_line
 # enddef
+# vim: sw=2 sts=2 et

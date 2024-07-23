@@ -11,7 +11,6 @@ What it is supposed to do:
 
 * replace all occurrences of `func`, `function`, etc. with `def` and `enddef`,
 * replace comment string `"` with `#`,
-* fix variables defined with `let`,
 * replace `v:true, v:false` with `true, false`,
 * add needed leading/trailing space for symbols like `=, :`, etc. as needed,
 * Remove line continuation symbol `\`,
@@ -25,60 +24,74 @@ plugin manually (i.e.
 `:source /path/to/vim9-conversion-aid/plugin/vim9-conversion-aid.vim`), and
 then use `Vim9Convert`.
 
-Also, before running the script, be sure that your script meets at least these
-two requirements before running `Vim9Convert`:
-
-* Add a `g:` to the variables that you want to define globally, e.g.
-  `let my_global` shall be `let g:my_global`,
-* Secure that the string concatenation operator has a leading and a trailing
-  white-space.
-
 At this point, if you source the converted script you will most likely have
 errors, but the error messages should tell you what shall be fixed and how.
 Also, mind that `:h vim9` can be a great support for fixing the remaining
-errors.
+errors if you really don't know how.
+
+To see how the tool perform the upgrade you can take a look at the
+`testfile.vim` and `targetfile.vim` in the test folder of this repo. As you
+will see, some manual work is still required, but the starting point is rather
+favorable compared to starting from scratch.
 
 ## Limitations
 
 The tool works better if the original script is not written in a fancy way. As
 said, don't expect miracles and consider the following limitations:
 
-* No inline comments, e.g. the following won't be fixed:
+* no inline comments, e.g. the following won't be fixed:
 
 ```
-let s:a = 3 # This is a comment
+let s:a = 3 " This is a comment
 ```
 
 The following will be fixed:
 
 ```
-# This is a comment
+" This is a comment
 let s:a = 3
 ```
 
-* Global variables defined at top-level scope with `let` will not be prepended
-  with `g:`, you must explicitly add `g:` to such variables,
-* The tool cannot distinguish between function local variables, function
-  arguments, and global variables. That is, if you have something like the
-  following:
-
-```
-function MyFunc()
-   let foo = 3
-   return bar
-endfunction
-
-let foo = MyFunc()
-```
-
-* If you have function local variables that shadow global variables you may
-  run into problems
-* It won't fix string concatenation if `.` does not have a leading and a
+* it won't fix string concatenation if `.` does not have a leading and a
   trailer white-space,
-* Functions with variable number of arguments won't be fixed,
-* It won't remove `eval`,
-* Lambda expressions will not be fixed,
+* functions with variable number of arguments won't be fixed,
+* it won't remove `eval`,
+* lambda expressions will not be fixed,
 * Vim9 syntax/semantics updates and datatypes shall be handled manually.
 
 ... but there is certainly more. If you find some bugs, please open an issue
 or send a PR.
+
+## `let`
+
+The upgrading `let` defined variables to the Vim9 format is a bit tricky, yet
+the tool tries to do its best. By default, such a feature is disabled. You can
+enable it by setting `g:vim9_conversion_aid_fix_let = true`.
+
+Such a feature removes all the `let` statements, and the variables
+declarations are adjusted by further taking into account their scope.
+
+However, this feature **fix the variables definitions, but not their usage.**
+For example, if you have the following statement:
+
+```
+let newdict = CreateDict()
+call PrintDictContent(newdict)
+```
+
+it will be converted to the following:
+
+```
+g:newdict = CreateDict()
+PrintDictContent(newdict)
+```
+
+i.e. the argument to the function call shall be manually fixed.
+
+Furthermore, given that variables names can be easily shadowed, we decided to
+keep `s:` and `a:` to help you in checking if your script semantic is still
+valid, and eventually perform the necessary adjustments in according to the
+new Vim9 syntax and semantics. Once done, you can remove the `s:`and the `a:`
+with a simple `:%s/\v(a:|s:)//g`. Nevertheless, it would be the best if you
+prepare your script by avoiding shadowing variables. Nevertheless, it would be
+the best if you prepare your script by avoiding shadowing variables.
