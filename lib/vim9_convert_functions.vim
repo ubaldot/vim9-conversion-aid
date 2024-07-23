@@ -68,20 +68,18 @@ export def TransformBuffer(...bufnr: list<string>)
         already_declared_function_local_vars = []
     endif
 
-    # UBA: Adjust based on if you are inside a function.
+    # OBS! At this point you should have the form 'g: foo' because you
+    # already added a trailing white-space white-space to all the ':' before.
     if transformed_line =~ '^\s*let\s'
-      # Exclude initial 'let' string before appending the variable name to
-      # the list already_declared_script_local_vars, e.g. 'let foo = bar' becomes 'foo'
+      # Store variable name that you need later on
       var var_name = transformed_line->matchlist('\v\s*let\s+([sabwtgv]:\s)?(\w+)\W')[1 : 2]->join('')
       echom var_name
 
-      # Scope explicitly present, i.e. 'let g:foo', 'let b:bar', 'let t:baz',
+      # Remove 'let' from all the variables, with the exception of s:
       if transformed_line =~ '^\s*let\s\+[bwtgv]:'
-        # OBS! At this point you should have the form 'g: foo' because you
-        # already added a trailing white-space ad removed leading white-space to all the ':' before.
         transformed_line = transformed_line->substitute('let\s\+', '', 'g')
 
-      # Otherwise, if it is script-local....
+      # For s: defined variables you need 'var' or nothing
       elseif !inside_function
         # s: handling
         if index(already_declared_script_local_vars, var_name) == -1 && var_name =~ '^s: '
@@ -116,7 +114,7 @@ export def TransformBuffer(...bufnr: list<string>)
     # b: could be a non-word OR the beginning of the line
     # Also, get rid off the old s: and a:.
     transformed_line = transformed_line->substitute('\(\W\|^\)\([asbwtgv]\)\s*:\s*', '\1\2:', 'g')
-    transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
+    # transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
 
     #
     # Append the transformed line to the list
