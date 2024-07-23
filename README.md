@@ -59,14 +59,14 @@ let s:a = 3
 * lambda expressions will not be fixed,
 * Vim9 syntax/semantics updates and datatypes shall be handled manually.
 
-... but there is certainly more. If you find some bugs, please open an issue
-or send a PR.
+... but there is certainly more that you will need to fix manually. If you
+find bugs or have improvements suggestions, please open an issue or send a PR.
 
 ## `let`
 
-The upgrading `let` defined variables to the Vim9 format is a bit tricky, yet
-the tool tries to do its best. By default, such a feature is disabled. You can
-enable it by setting `g:vim9_conversion_aid_fix_let = true`.
+The Vim9 upgrading of `let` defined variables is a bit tricky, yet the tool
+tries to do its best to make it. However, by default, the `let` conversion is
+disabled. You can enable it by setting `g:vim9_conversion_aid_fix_let = true`.
 
 Such a feature removes all the `let` statements, and the variables
 declarations are adjusted by further taking into account their scope.
@@ -90,8 +90,6 @@ i.e. the argument to the function call shall be manually fixed.
 
 Furthermore, given that variables names can be easily shadowed, we decided to
 keep `s:` and `a:` to help you in checking if your script semantic is still
-valid, and eventually perform the necessary adjustments in according to the
-new Vim9 syntax and semantics. Once done, you can remove the `s:`and the `a:`
-with a simple `:%s/\v(a:|s:)//g`. Nevertheless, it would be the best if you
-prepare your script by avoiding shadowing variables. Nevertheless, it would be
-the best if you prepare your script by avoiding shadowing variables.
+valid, and eventually perform the necessary adjustments Once done, you can
+remove the `s:`and the `a:` with a simple `:%s/\v(a:|s:)//g`. Nevertheless, it
+would be the best if you prepare your script by avoiding shadowing variables.
