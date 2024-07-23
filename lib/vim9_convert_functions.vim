@@ -39,7 +39,7 @@ export def TransformBuffer(...bufnr: list<string>)
         ->substitute('\v(^func!?|^function!?)\s', 'def ', 'g')
         ->substitute('abort', '', 'g')
         ->substitute('\v(endfunction|endfunc)', 'enddef', 'g')
-        # Remove all occurrences of 'call', Remove all occurrences of 'a:' and 's:'
+        # Remove all occurrences of 'call'
         ->substitute('call\s', '', 'g')
         # Replace '#{' with '{' in dictionaries
         ->substitute('#{', '{', 'g')
@@ -54,6 +54,7 @@ export def TransformBuffer(...bufnr: list<string>)
         ->substitute('\v\s*([,:])', '\1', 'g')
         # Surrounding space between : in brackets[1:3] => [1 : 3]
         # I assumes that what is inside a list is a \w* and not a \S*
+        # TODO FIX
         ->substitute('\v\[\s*(\w+)\s*:\s*(\w+)\s*\]', '[\1 : \2]', 'g')
         # String concatenation
         ->substitute('\s\+\.\s\+', ' \.\.\ ', 'g')
@@ -91,8 +92,7 @@ export def TransformBuffer(...bufnr: list<string>)
         endif
 
         # For s: you need 'var' or '' but you have to also consider possible function scopes
-        # For 'let foo' you need 'g:' or 'var', depending where 'let foo'
-        # appears
+        # For 'let foo' you need 'g:' or 'var', depending where 'let foo' appears
         # Script scope
         if !inside_function
           if var_name =~ '^s: '
@@ -108,13 +108,9 @@ export def TransformBuffer(...bufnr: list<string>)
         # Function scope
         else
           if var_name =~ '^s: '
-            # if transformed_line =~ 'let\s\+a:'
-            #   transformed_line = transformed_line->substitute('let\s\+', '', 'g')
             if index(already_declared_function_local_vars, var_name) == -1 && index(already_declared_script_local_vars, var_name) == -1
               transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
               add(already_declared_function_local_vars, var_name)
-            # elseif index(already_declared_function_local_vars, var_name) != -1 && index(already_declared_script_local_vars, var_name) == -1
-            #   transformed_line = transformed_line->substitute('let\s\+', '', 'g')
             else
               transformed_line = transformed_line->substitute('let\s\+', '', '')
             endif
@@ -129,15 +125,13 @@ export def TransformBuffer(...bufnr: list<string>)
         endif
       endif
 
-        # Re-compact b: w: t: g: v: a:, s: e.g. from 'b : foo' to 'b:foo'. The leading char of
-        # b: could be a non-word OR the beginning of the line
+        # Re-compact b: w: t: g: v: a:, s: e.g. from 'b : foo' to 'b:foo'.
         transformed_line = transformed_line->substitute('\(\W\|^\)\([asbwtgv]\)\s*:\s*', '\1\2:', 'g')
 
         # Also, get rid off the old s: and a:.
         # transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
     endif
 
-      #
       # Append the transformed line to the list
       add(transformed_lines, transformed_line)
   endfor
@@ -150,33 +144,4 @@ export def TransformBuffer(...bufnr: list<string>)
   execute $'buffer {new_bufnr}'
 enddef
 
-
-# def FixLet(line: string): string
-#     # Replace 'let' with 'var' where it is needed
-#     var manipulated_line = line
-#     if manipulated_line =~ '^\s*let\s'
-#       # If it is g:, b:, etc.
-#       # OBS! At this point you should have the form 'g: foo' because the ':'
-#       # should be already manipulated
-#       if manipulated_line =~ '^\s*let\s\+[bwtgv]:'
-#         manipulated_line = manipulated_line->substitute('let\s', '', 'g')
-#       # If it is script-local
-#       else
-#         # Exclude initial 'let' string before appending the variable name to
-#         # the list already_declared_script_local_vars, e.g. 'let foo = bar' becomes 'foo'
-#         # echom already_declared_script_local_vars
-#         # var var_name = manipulated_line->substitute('\s*let\s\+\(\w\+\)\(\s*[=.\[]\s*.*\)', '\1', '')
-#         var var_name = manipulated_line->substitute('\s*let\s\+\(\w\+\)\(\s*.*\)', '\1', '')
-#         if index(already_declared_script_local_vars, var_name) == -1
-#           manipulated_line = manipulated_line->substitute('let\s', 'var ', 'g')
-#           # echom manipulated_line
-#           add(already_declared_script_local_vars, var_name)
-#         else
-#           manipulated_line = manipulated_line->substitute('let\s', '', 'g')
-#         endif
-#       endif
-#     endif
-
-#     return manipulated_line
-# enddef
 # vim: sw=2 sts=2 et
