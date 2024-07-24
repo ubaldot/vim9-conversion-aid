@@ -39,9 +39,10 @@ export def TransformBuffer(...bufnr: list<string>)
     if !(transformed_line =~ '^\s*#')
       transformed_line = transformed_line
         # Replace all occurrences of 'func', etc. with 'def', etc
-        ->substitute('fu\l*[!]\?\s', 'def ', 'g')
+        ->substitute('^\s*fu\l*[!]\?\s', 'def ', 'g')
         ->substitute(' abort', '', 'g')
-        ->substitute('endf\l*', 'enddef', 'g')
+        # 'endf'  can be the leding part of both 'endfunc' and 'endfor'
+        ->substitute('\(^\s*\)endf\l*', (m) => m[0] =~ 'endfor' ? m[1] .. 'endfor' : m[1] .. 'enddef', '')
         # Remove all occurrences of 'call'
         ->substitute('cal[l]\?\s', '', 'g')
         # Replace '#{' with '{' for dictionaries
