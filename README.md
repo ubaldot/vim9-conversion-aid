@@ -61,8 +61,8 @@ The following will be fixed:
 let s:a = 3
 ```
 
-- it won't fix string concatenation if `.` does not have a leading and a
-  trailer white-space,
+- it won't fix string concatenation if the concatenation operator `.` does not
+  have a leading and a trailer white-space,
 - functions with variable number of arguments won't be fixed,
 - it won't remove `eval`,
 - lambda expressions will not be fixed,
@@ -72,16 +72,9 @@ let s:a = 3
 find bugs or have improvements suggestions, please open an issue or send a PR.
 
 To circumnavigate some of the above limitations, you can prepare your script
-as it follows:
-
-### Script preparation
-
-- Remove inline comments,
-- add a leading and a trailing white-space to string concatenation operator
-  `.`,
-- avoid using script-local variable names that shadow vim builtin keywords
-  (e.g. avoid to call a variable `let s:vertical` because `vertical` is a
-  builtin keyword.
+to don't hit the above limitations. Plus, avoid using script-local variable
+names that shadow vim builtin keywords (e.g. avoid to call a variable
+`let s:vertical` because `vertical` is a builtin keyword.
 
 ## `let`
 
@@ -93,7 +86,7 @@ Such a feature removes all the `let` statements, and the variables
 declarations are adjusted by further taking into account their scope.
 
 However, this feature **fix the variables definitions, but not their usage.**
-For example, if you have the following statement:
+For example, if at script level you have the following statement:
 
 ```
 let newdict = CreateDict()
@@ -109,9 +102,10 @@ PrintDictContent(newdict)
 
 i.e. the argument to the function call shall be manually fixed.
 
-Furthermore, given that variables names can be easily shadowed, we decided to
-keep `s:` and `a:` to help you in checking if your script semantic is still
-valid, and eventually perform the necessary adjustments Once done, you can
-remove the `s:`and the `a:` with a simple `:%s/\v(a:|s:)//g`. Nevertheless,
-the best would be if you prepare your script by avoiding potential variables
-shadowing.
+## `a:` and `s`
+
+Given that variables names can be easily shadowed, we decided to keep `s:` and
+`a:` to help you in checking if your script semantic is still valid, and
+eventually perform the necessary adjustments Once done, you can remove the
+`s:`and the `a:` with a simple `:%s/\v(a:|s:)//g`. Nevertheless, the best
+would be if you prepare your script by avoiding potential variables shadowing.
