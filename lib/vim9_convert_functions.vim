@@ -15,7 +15,7 @@ export def TransformBuffer(...bufnr: list<string>)
 
   vertical new
   # UBA
-  setlocal bufhidden=wipe
+  # setlocal bufhidden=wipe
   var new_bufnr = bufnr('%')
 
   # Get the content of the source buffer
