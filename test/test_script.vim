@@ -62,16 +62,16 @@ func! TestShadow1()
     echom shadow
 endfu
 
-func! TestShadow2()
+funct! TestShadow2()
     let s:shadow=3
     echom s:shadow
 endf
 
-func TestShadow3(shadow)
+fu TestShadow3(shadow)
     let s:shadow = a:shadow
     let shadow =a:shadow
     echom a:shadow
-endfunc
+endf
 
 call TestShadow3(shadow)
 call TestShadow3(s:shadow)
