@@ -39,9 +39,9 @@ perform a line-by-line comparison between the old and the converted script.
 (Tip: use `:set scrollbind` or `:diffthis` on both the buffers.)
 
 To see how the tool perform the upgrade you can take a look at the
-`test_script.vim` and `expected_script.vim` in the test folder of this repo.
-As you will see, some manual work is still required, but the starting point is
-rather favorable compared to starting from scratch.
+`./test/test_script.vim` and `./test/expected_script.vim` scripts. As you will
+see, some manual work is still required, but the starting point is rather
+favorable compared to starting from scratch.
 
 ## Limitations
 
