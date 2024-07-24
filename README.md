@@ -36,7 +36,7 @@ errors if you really don't know how.
 
 If you add a couple of lines on top of your legacy script, then you can
 perform a line-by-line comparison between the old and the converted script.
-(Tip: use `set scrollbind` or `:diffthis` on both the buffers.)
+(Tip: use `:set scrollbind` or `:diffthis` on both the buffers.)
 
 To see how the tool perform the upgrade you can take a look at the
 `test_script.vim` and `expected_script.vim` in the test folder of this repo.
