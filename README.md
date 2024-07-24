@@ -102,7 +102,7 @@ PrintDictContent(newdict)
 
 i.e. the argument to the function call shall be manually fixed.
 
-## `a:` and `s`
+## `a:` and `s:`
 
 Given that variables names can be easily shadowed, we decided to keep `s:` and
 `a:` to help you in checking if your script semantic is still valid, and
