@@ -3,9 +3,14 @@
 A little help for upgrading to Vim9.
 
 The tool is nothing but an aid to convert legacy Vim scripts to Vim 9
-language. It does not make miracles, nor it is bullet proof, it is certainly
-buggy and have a questionable design, but it may help you in speeding up the
-conversion process.
+language.
+
+<!-- It does not make miracles, nor it is bullet proof, it is certainly -->
+<!-- buggy and have a questionable design, but it may help you in speeding up the -->
+<!-- conversion process. -->
+
+It does not make miracles, nor it is bullet proof, but it may help you in
+speeding up the conversion process.
 
 What it is supposed to do:
 
@@ -28,6 +33,10 @@ At this point, if you source the converted script you will most likely have
 errors, but the error messages should tell you what shall be fixed and how.
 Also, mind that `:h vim9` can be a great support for fixing the remaining
 errors if you really don't know how.
+
+If you add a couple of lines on top of your legacy script, then you can
+perform a line-by-line comparison between the old and the converted script.
+(Tip: use `set scrollbind` or `:diffthis` on both the buffers.)
 
 To see how the tool perform the upgrade you can take a look at the
 `test_script.vim` and `expected_script.vim` in the test folder of this repo.
