@@ -41,9 +41,9 @@ export def TransformBuffer(...bufnr: list<string>)
         # Replace all occurrences of 'func', etc. with 'def', etc
         ->substitute('\v(^func!?|^function!?)\s', 'def ', 'g')
         ->substitute(' abort', '', 'g')
-        ->substitute('\v(endfunction|endfunc)', 'enddef', 'g')
+        ->substitute('endf[\l*]', 'enddef', 'g')
         # Remove all occurrences of 'call'
-        ->substitute('call\s', '', 'g')
+        ->substitute('cal[l]?\s', '', 'g')
         # Replace '#{' with '{' for dictionaries
         ->substitute('#{', '{', 'g')
         # Remove function('') for funcref

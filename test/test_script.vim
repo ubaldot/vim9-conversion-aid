@@ -60,12 +60,12 @@ let b:shadow = 4
 func! TestShadow1()
     let shadow = 3
     echom shadow
-endfunc
+endfu
 
 func! TestShadow2()
     let s:shadow=3
     echom s:shadow
-endfunc
+endf
 
 func TestShadow3(shadow)
     let s:shadow = a:shadow
