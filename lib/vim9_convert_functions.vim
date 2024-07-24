@@ -30,7 +30,6 @@ export def TransformBuffer(...bufnr: list<string>)
   var inside_function = false
 
   # In very-magic form
-  # var comparison_operators_regex = '(\=*[\^\=\~]|!\=|\<\=|\>\=|\<|\>|\=\~|!\~)'
   var comparison_operators_regex = '(\=[\=\~]?|!\=|\<\=|\>\=|\<|\>|!\~)'
 
   for line in source_lines
@@ -45,15 +44,14 @@ export def TransformBuffer(...bufnr: list<string>)
         ->substitute('\v(endfunction|endfunc)', 'enddef', 'g')
         # Remove all occurrences of 'call'
         ->substitute('call\s', '', 'g')
-        # Replace '#{' with '{' in dictionaries
+        # Replace '#{' with '{' for dictionaries
         ->substitute('#{', '{', 'g')
         # Remove function('') for funcref
         ->substitute('\vfunction\([''"](\w*)[''"]\)', '\1', 'g')
 
         # Leading and trailing white-space around comparison operators and '='
-        # TODO; it add leading and trailing space no matter what.
-        # If you already have a space, now you will have two, and then remove
-        # the extras with the next 2 substitute functions
+        # If you already have a space, it will add another one. Hence, you remove
+        # the extra spaces with the next two substitute functions
         ->substitute($'\v{comparison_operators_regex}([#?]?)', ' \0 ', '')
         ->substitute($'\v{comparison_operators_regex}([#?]?)\s\s', '\1\2 ', '')
         ->substitute($'\v\s\s{comparison_operators_regex}([#?]?)', ' \1\2', '')
@@ -64,15 +62,12 @@ export def TransformBuffer(...bufnr: list<string>)
         ->substitute('\v\s*([,:])', '\1', 'g')
         # Surrounding space between : in brackets[1:3] => [1 : 3]
         # I assumes that what is inside a list is a \w* and not a \S*
-        # TODO FIX
-        # ->substitute('\v\[\s*(\w+)\s*:\s*(\w+)\s*\]', '[\1 : \2]', 'g')
         ->substitute('\v\[\s*(\S+)\s*:\s*(\S+)\s*\]', '[\1 : \2]', '')
         # String concatenation
         ->substitute('\s\+\.\s\+', ' \.\.\ ', 'g')
         # Remove line continuation
         ->substitute('\v(^\s*)\\', '\1', '')
-        # Replace v:true, v:false with true, false (OBS! We need to remove v:
-        # spaces)
+        # Replace v:true, v:false with true, false
         ->substitute('v:[true, false]', '\0'[2 : ], 'g')
     endif
 
@@ -81,8 +76,6 @@ export def TransformBuffer(...bufnr: list<string>)
 
 
     # ------------------------ let management ---------------------------
-    # OBS! All the : have a trailing space, e.g. 'b: foo', 's: bar' , etc.
-    # This will be taken into account below.
 
     if fix_let
       if transformed_line =~ '^def'
@@ -92,8 +85,6 @@ export def TransformBuffer(...bufnr: list<string>)
         already_declared_function_local_vars = []
       endif
 
-      # OBS! At this point you should have the form 'g: foo' because you
-      # already added a trailing white-space white-space to all the ':' before.
       if transformed_line =~ '^\s*let\s'
         # Store variable name without 'let'.
         var var_name = transformed_line->matchlist('\v\s*let\s+([sabwtgv]:)?(\w+)\W')[1 : 2]->join('')
