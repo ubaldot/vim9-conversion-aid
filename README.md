@@ -70,6 +70,7 @@ let s:a = 3
 
 ... but there is certainly more that you will need to fix manually. If you
 find bugs or have improvements suggestions, please open an issue or send a PR.
+In the latter case, don't forget to update the tests.
 
 To circumnavigate some of the above limitations, you can prepare your script
 to don't hit the above limitations. Plus, avoid using script-local variable
