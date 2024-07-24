@@ -54,7 +54,7 @@ export def TransformBuffer(...bufnr: list<string>)
         # TODO; it add leading and trailing space no matter what.
         # If you already have a space, now you will have two, and then remove
         # the extras with the next 2 substitute functions
-        ->substitute($'\v{comparison_operators_regex}([#?]?)', ' \1\2 ', 'g')
+        ->substitute($'\v{comparison_operators_regex}([#?]?)', ' \0 ', 'g')
         ->substitute($'\v{comparison_operators_regex}([#?]?)\s\s', '\1\2 ', 'g')
         ->substitute($'\v\s\s{comparison_operators_regex}([#?]?)', ' \1\2', 'g')
 
@@ -79,6 +79,10 @@ export def TransformBuffer(...bufnr: list<string>)
         ->substitute('v:\([true, false]\)', '\1'[2 : ], 'g')
     endif
 
+    # Re-compact b: w: t: g: v: a:, s: e.g. from 'b : foo' to 'b:foo'.
+    transformed_line = transformed_line->substitute('\(\W\|^\)\([asbwtgv]\)\s*:\s*', '\1\2:', 'g')
+
+
     # ------------------------ let management ---------------------------
     # OBS! All the : have a trailing space, e.g. 'b: foo', 's: bar' , etc.
     # This will be taken into account below.
@@ -95,8 +99,8 @@ export def TransformBuffer(...bufnr: list<string>)
       # already added a trailing white-space white-space to all the ':' before.
       if transformed_line =~ '^\s*let\s'
         # Store variable name without 'let'.
-        var var_name = transformed_line->matchlist('\v\s*let\s+([sabwtgv]:\s)?(\w+)\W')[1 : 2]->join('')
-        # echom var_name
+        var var_name = transformed_line->matchlist('\v\s*let\s+([sabwtgv]:)?(\w+)\W')[1 : 2]->join('')
+        echom var_name
 
         # Remove 'let' from all the lines containing variables, with the exception of s: and
         # '' (e.g. 'let foo'). The latter because 'let foo" can be either
@@ -109,7 +113,7 @@ export def TransformBuffer(...bufnr: list<string>)
         # For 'let foo' you need 'g:' or 'var', depending where 'let foo' appears
         # Script scope
         if !inside_function
-          if var_name =~ '^s: '
+          if var_name =~ '^s:'
             if index(already_declared_script_local_vars, var_name) == -1
               transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
               add(already_declared_script_local_vars, var_name)
@@ -117,18 +121,18 @@ export def TransformBuffer(...bufnr: list<string>)
               transformed_line = transformed_line->substitute('let\s\+', '', '')
             endif
           elseif var_name !~ '^[sabwtgv]: '
-            transformed_line = transformed_line->substitute('let\s\+', 'g: ', '')
+            transformed_line = transformed_line->substitute('let\s\+', 'g:', '')
           endif
         # Function scope
         else
-          if var_name =~ '^s: '
+          if var_name =~ '^s:'
             if index(already_declared_function_local_vars, var_name) == -1 && index(already_declared_script_local_vars, var_name) == -1
               transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
               add(already_declared_function_local_vars, var_name)
             else
               transformed_line = transformed_line->substitute('let\s\+', '', '')
             endif
-          elseif var_name !~ '^[sabwtgv]: '
+          elseif var_name !~ '^[sabwtgv]:'
             if index(already_declared_function_local_vars, var_name) == -1
               transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
               add(already_declared_function_local_vars, var_name)
@@ -138,13 +142,10 @@ export def TransformBuffer(...bufnr: list<string>)
           endif
         endif
       endif
-
-        # Re-compact b: w: t: g: v: a:, s: e.g. from 'b : foo' to 'b:foo'.
-        transformed_line = transformed_line->substitute('\(\W\|^\)\([asbwtgv]\)\s*:\s*', '\1\2:', 'g')
-
-        # Also, get rid off the old s: and a:.
-        # transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
     endif
+
+      # Also, get rid off the old s: and a:.
+      # transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
 
       # Append the transformed line to the list
       add(transformed_lines, transformed_line)

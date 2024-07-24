@@ -12,7 +12,7 @@ What it is supposed to do:
 - replace all occurrences of `func`, `function`, etc. with `def` and `enddef`,
 - replace comment string `"` with `#`,
 - replace `v:true, v:false` with `true, false`,
-- add needed leading/trailing space for symbols like `=, :`, etc. as needed,
+- add leading/trailing space to `=` and to comparison signs as needed,
 - Remove line continuation symbol `\`,
 - ... and more.
 
