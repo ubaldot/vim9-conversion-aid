@@ -9,12 +9,12 @@ conversion process.
 
 What it is supposed to do:
 
-* replace all occurrences of `func`, `function`, etc. with `def` and `enddef`,
-* replace comment string `"` with `#`,
-* replace `v:true, v:false` with `true, false`,
-* add needed leading/trailing space for symbols like `=, :`, etc. as needed,
-* Remove line continuation symbol `\`,
-* ... and more.
+- replace all occurrences of `func`, `function`, etc. with `def` and `enddef`,
+- replace comment string `"` with `#`,
+- replace `v:true, v:false` with `true, false`,
+- add needed leading/trailing space for symbols like `=, :`, etc. as needed,
+- Remove line continuation symbol `\`,
+- ... and more.
 
 There is only one command available which is `Vim9Convert` that takes a buffer
 as optional argument.
@@ -39,7 +39,7 @@ favorable compared to starting from scratch.
 The tool works better if the original script is not written in a fancy way. As
 said, don't expect miracles and consider the following limitations:
 
-* no inline comments, e.g. the following won't be fixed:
+- no inline comments, e.g. the following won't be fixed:
 
 ```
 let s:a = 3 " This is a comment
@@ -52,15 +52,27 @@ The following will be fixed:
 let s:a = 3
 ```
 
-* it won't fix string concatenation if `.` does not have a leading and a
+- it won't fix string concatenation if `.` does not have a leading and a
   trailer white-space,
-* functions with variable number of arguments won't be fixed,
-* it won't remove `eval`,
-* lambda expressions will not be fixed,
-* Vim9 syntax/semantics updates and datatypes shall be handled manually.
+- functions with variable number of arguments won't be fixed,
+- it won't remove `eval`,
+- lambda expressions will not be fixed,
+- Vim9 syntax/semantics updates and datatypes shall be handled manually.
 
 ... but there is certainly more that you will need to fix manually. If you
 find bugs or have improvements suggestions, please open an issue or send a PR.
+
+To circumnavigate some of the above limitations, you can prepare your script
+as it follows:
+
+### Script preparation
+
+- Remove inline comments,
+- add a leading and a trailing white-space to string concatenation operator
+  `.`,
+- avoid using script-local variable names that shadow vim builtin keywords
+  (e.g. avoid to call a variable `let s:vertical` because `vertical` is a
+  builtin keyword.
 
 ## `let`
 

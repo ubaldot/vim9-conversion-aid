@@ -29,6 +29,9 @@ export def TransformBuffer(...bufnr: list<string>)
   var transformed_line = ''
   var inside_function = false
 
+  # In very-magic form
+  var comparison_operators_regex = '(\=+[\^~]?|!\=|\<\=|\>\=|\<|\>|\=\~|!\~)'
+
   for line in source_lines
     # Comments " -> #
     transformed_line = line ->substitute('^\s*"', (m) => $'{m[0][: -2]}#', 'g')
@@ -45,9 +48,10 @@ export def TransformBuffer(...bufnr: list<string>)
         ->substitute('#{', '{', 'g')
         # Remove function('') for funcref
         ->substitute('\vfunction\([''"](\w*)[''"]\)', '\1', 'g')
-        # Leading and trailing white-space for = and ==
-        ->substitute('\v(\=+)(\S)', '\1 \2', 'g')
-        ->substitute('\v(\S)(\=+)', '\1 \2', 'g')
+        # Leading and trailing white-space for comparison operators and =
+        ->substitute($'\v{comparison_operators_regex}([#?]?)(\S)', '\1\2 \3', 'g')
+        ->substitute($'\v(\S){comparison_operators_regex}([#?]?)', '\1 \2\3', 'g')
+        ->substitute($'\v{comparison_operators_regex}\?', '\1', 'g')
         # space after ':' or ',' - no space before ':' or ','
         # TODO: It replaces only the first match
         ->substitute('\v([,:])(\S)', '\1 \2', 'g')
