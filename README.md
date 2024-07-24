@@ -1,4 +1,4 @@
-# vim9-conversion-aid (WIP)
+# vim9-conversion-aid
 
 A little help for upgrading to Vim9.
 
@@ -30,9 +30,9 @@ Also, mind that `:h vim9` can be a great support for fixing the remaining
 errors if you really don't know how.
 
 To see how the tool perform the upgrade you can take a look at the
-`testfile.vim` and `targetfile.vim` in the test folder of this repo. As you
-will see, some manual work is still required, but the starting point is rather
-favorable compared to starting from scratch.
+`test_script.vim` and `expected_script.vim` in the test folder of this repo.
+As you will see, some manual work is still required, but the starting point is
+rather favorable compared to starting from scratch.
 
 ## Limitations
 
