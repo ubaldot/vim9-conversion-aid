@@ -31,30 +31,30 @@ jobs:
           source ./run_tests.sh 1
 
 
-  # unit_test_windows:
-  #   name: unit_test_windows
-  #   runs-on: windows-latest
-  #   strategy:
-  #     matrix:
-  #       vim:
-  #         - nightly
-  #         - v9.0.0000
+  unit_test_windows:
+    name: unit_test_windows
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        vim:
+          - nightly
+          - v9.0.0000
 
+    steps:
+      - name: Setup Vim
+        uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: ${{ matrix.vim }}
 
-  #     - name: Setup Vim
-  #       uses: rhysd/action-setup-vim@v1
-  #       id: vim
-  #       with:
-  #         version: ${{ matrix.vim }}
+      - name: Checkout vim9-conversion-aid replica plugin code
+        uses: actions/checkout@v4
 
-  #     - name: Checkout vim9-conversion-aid replica plugin code
-  #       uses: actions/checkout@v4
-
-  #     - name: Run Tests
-  #       run: |
-  #         systeminfo
-  #         echo "Vim command setup."
-  #         $Env:VIMPRG = "${{ steps.vim.outputs.executable }}"
-  #         & $Env:VIMPRG --version
-  #         cd test
-  #         .\run_tests.cmd
+      - name: Run Tests
+        run: |
+          systeminfo
+          echo "Vim command setup."
+          $Env:VIMPRG = "${{ steps.vim.outputs.executable }}"
+          & $Env:VIMPRG --version
+          cd test
+          .\run_tests.cmd

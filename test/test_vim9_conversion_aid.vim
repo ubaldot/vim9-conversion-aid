@@ -30,8 +30,8 @@ def g:Test_converted_script()
 
   # Compare expected VS actual
   for lnum in range(1, line('$'))
-      var expected_line = getbufoneline(expected_script_bufnr, lnum)
-      var actual_line =  getbufoneline(actual_script_bufnr, lnum)
+      var expected_line = getbufline(expected_script_bufnr, lnum)
+      var actual_line =  getbufline(actual_script_bufnr, lnum)
       assert_equal(expected_line, actual_line)
   endfor
 
