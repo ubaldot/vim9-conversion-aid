@@ -39,16 +39,16 @@ export def TransformBuffer(...bufnr: list<string>)
     if !(transformed_line =~ '^\s*#')
       transformed_line = transformed_line
         # Replace all occurrences of 'func', etc. with 'def', etc
-        ->substitute('^\s*fu\l*[!]\?\s', 'def ', 'g')
-        ->substitute(')\s*\(abort\|range\|dict\)', ')', 'g')
+        ->substitute('^\s*fu\l*[!]\?\s', 'def ', '')
+        ->substitute(')\s*\(abort\|range\|dict\)', ')', '')
         # 'endf'  can be the leading part of both 'endfunc' and 'endfor'
         ->substitute('\(^\s*\)endf\l*', (m) => m[0] =~ 'endfor' ? m[1] .. 'endfor' : m[1] .. 'enddef', '')
         # Remove all occurrences of 'call'
-        ->substitute('cal[l]\?\s', '', 'g')
+        ->substitute('cal[l]\?\s', '', '')
         # Replace '#{' with '{' for dictionaries
         ->substitute('#{', '{', 'g')
         # Remove function('') for funcref
-        ->substitute('\vfunction\([''"](\w*)[''"]\)', '\1', 'g')
+        ->substitute('\vfunction\([''"](\w*)[''"]\)', '\1', '')
 
         # Leading and trailing white-space around comparison operators and '='
         # If you already have a space, it will add another one. Hence, you remove
