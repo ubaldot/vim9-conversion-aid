@@ -38,18 +38,10 @@ echom foo !~#'carot'
 let another_dict={'foo'             :   'FOO' , 'bar':s:bar,
             \ 'baz' :'BAZ'}
 
-        " Test on booleans
-let s:one_boolean= v:true
-let s:one_boolean= v:false
-
-if s:one_boolean==v:true
-    echo "foo"
-endif
 
 if exists('b:one_function')
     echom 'foo'
 endif
-
 
 " Test functions
 " Test on variables shadowing
@@ -78,19 +70,35 @@ call TestShadow3(s:shadow)
 call TestShadow3(b:shadow)
 
 " Test script/function scopes
-function PrintSomeText()
-    let s:foo = false
-    if false
-        echom a.foo
+function BooleanChange()
+    let s:foo = v:false
+    if s:foo
+        let s:foo_new =v:true
     else
-        echom A.BAR
-    let b:one_buffer_var=-66
+        let s:foo_new =v:false
     endif
-
-    let l:one_local_var='elephant'
-    echo l:one_local_var
-    let l:one_local_var ='tiger'
+    echo s:foo_new
 endfunc
+
+fu! ReassignSomeVars1()
+    let g:one_global_var=66
+    let one_script_var ='monkey'
+    let l:one_local_var='dog'
+    let l:one_local_var='kitten'
+    echo 'Vars reassigned'
+endfu
+
+func! ReassignSomeVars2(newdict)
+    if s:foo
+      let b:another_buffer_var=33
+    endif
+    let l:one_local_var='elephant'
+    let l:one_local_var ='tiger'
+    let s:bar ='donkey'
+    let s:bar= 'cow'
+    let a:newdict[g:one_global_var]= "one global"
+    echo 'Vars reassigned (2)'
+endfu
 
 " Define a function that takes a dictionary as an argument and prints its content
 func PrintDictContent(dict) abort
@@ -98,24 +106,16 @@ func PrintDictContent(dict) abort
     for [key  ,value] in items(a:dict)
         echo key . ": " . value
     endfor
-    let g:one_global_var=66
 endfunction
 
 " Define a function that updates a dictionary value
 function! UpdateDict(dict, key, value) abort
     let a:dict[a:key]= a:value
-    let b:another_buffer_var=33
-    let one_script_var ='monkey'
-    let l:one_local_var='dog'
-    let l:one_local_var='kitten'
 endfunction
 
 " Define a function that returns a dictionary
 func! CreateDict() abort
     let newdict = #{ key1: "value1", key2: "value2", }
-    let newdict[g:one_global_var]= "one global"
-    let s:bar = 'donkey'
-    let s:bar = 'cow'
     return newdict
 endfunction
 
@@ -126,6 +126,10 @@ call PrintDictContent(mydict)
 
 let newdict = CreateDict()
 call PrintDictContent(newdict)
+
+cal ReassignSomeVars1()
+cal ReassignSomeVars2(newdict)
+
 
 " Test on function() removal
 let w:one_function = function('PrintDictContent')

@@ -40,18 +40,10 @@ echom foo !~# 'carot'
 g:another_dict = {'foo':   'FOO', 'bar': s:bar,
              'baz': 'BAZ'}
 
-        # Test on booleans
-var s:one_boolean = true
-s:one_boolean = false
-
-if s:one_boolean == true
-    echo "foo"
-endif
 
 if exists('b:one_function')
     echom 'foo'
 endif
-
 
 # Test functions
 # Test on variables shadowing
@@ -80,18 +72,34 @@ TestShadow3(s:shadow)
 TestShadow3(b:shadow)
 
 # Test script/function scopes
-def PrintSomeText()
+def BooleanChange()
     var s:foo = false
-    if false
-        echom a.foo
+    if s:foo
+        var s:foo_new = true
     else
-        echom A.BAR
-    b:one_buffer_var = -66
+        s:foo_new = false
     endif
+    echo s:foo_new
+enddef
 
+def ReassignSomeVars1()
+    g:one_global_var = 66
+    var one_script_var = 'monkey'
+    var l:one_local_var = 'dog'
+    l:one_local_var = 'kitten'
+    echo 'Vars reassigned'
+enddef
+
+def ReassignSomeVars2(newdict)
+    if s:foo
+      b:another_buffer_var = 33
+    endif
     var l:one_local_var = 'elephant'
-    echo l:one_local_var
     l:one_local_var = 'tiger'
+    s:bar = 'donkey'
+    s:bar = 'cow'
+    let a:newdict[g:one_global_var] = "one global"
+    echo 'Vars reassigned (2)'
 enddef
 
 # Define a function that takes a dictionary as an argument and prints its content
@@ -100,24 +108,16 @@ def PrintDictContent(dict)
     for [key, value] in items(a:dict)
         echo key .. ": " .. value
     endfor
-    g:one_global_var = 66
 enddef
 
 # Define a function that updates a dictionary value
 def UpdateDict(dict, key, value)
     let a:dict[a:key] = a:value
-    b:another_buffer_var = 33
-    var one_script_var = 'monkey'
-    var l:one_local_var = 'dog'
-    l:one_local_var = 'kitten'
 enddef
 
 # Define a function that returns a dictionary
 def CreateDict()
     var newdict = { key1: "value1", key2: "value2", }
-    newdict[g:one_global_var] = "one global"
-    s:bar = 'donkey'
-    s:bar = 'cow'
     return newdict
 enddef
 
@@ -128,6 +128,10 @@ PrintDictContent(mydict)
 
 g:newdict = CreateDict()
 PrintDictContent(newdict)
+
+ReassignSomeVars1()
+ReassignSomeVars2(newdict)
+
 
 # Test on function() removal
 w:one_function = PrintDictContent
