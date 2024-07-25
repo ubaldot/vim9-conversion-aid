@@ -57,7 +57,7 @@ let shadow = 2
 let s:shadow = 3
 let b:shadow = 4
 
-func! TestShadow1()
+func! TestShadow1() range
     let shadow = 3
     echom shadow
 endfu
@@ -67,7 +67,7 @@ funct! TestShadow2()
     echom s:shadow
 endf
 
-fu TestShadow3(shadow)
+fu TestShadow3(shadow) abort
     let s:shadow = a:shadow
     let shadow =a:shadow
     echom a:shadow

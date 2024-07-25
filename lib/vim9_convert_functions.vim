@@ -40,7 +40,7 @@ export def TransformBuffer(...bufnr: list<string>)
       transformed_line = transformed_line
         # Replace all occurrences of 'func', etc. with 'def', etc
         ->substitute('^\s*fu\l*[!]\?\s', 'def ', 'g')
-        ->substitute(' abort', '', 'g')
+        ->substitute(')\s*\(abort\|range\|dict\)', ')', 'g')
         # 'endf'  can be the leading part of both 'endfunc' and 'endfor'
         ->substitute('\(^\s*\)endf\l*', (m) => m[0] =~ 'endfor' ? m[1] .. 'endfor' : m[1] .. 'enddef', '')
         # Remove all occurrences of 'call'
