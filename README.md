@@ -24,7 +24,7 @@ What it is supposed to do:
 There is only one command available which is `Vim9Convert` that takes a buffer
 as optional arguments.
 
-The various `let` around won't be converted automatically, but you have to set
+The various `let` around won't be converted automatically, you have to set
 `g:vim9_conversion_aid_fix_let = true`. However, this feature **fix the
 variables definitions, but not their usage.** For example, if at script level
 you have the following statement:
