@@ -88,6 +88,10 @@ def PrintSomeText()
         echom A.BAR
     b:one_buffer_var = -66
     endif
+
+    var l:one_local_var = 'elephant'
+    echo l:one_local_var
+    l:one_local_var = 'tiger'
 enddef
 
 # Define a function that takes a dictionary as an argument and prints its content
@@ -104,13 +108,16 @@ def UpdateDict(dict, key, value)
     let a:dict[a:key] = a:value
     b:another_buffer_var = 33
     var one_script_var = 'monkey'
+    var l:one_local_var = 'dog'
+    l:one_local_var = 'kitten'
 enddef
 
 # Define a function that returns a dictionary
 def CreateDict()
     var newdict = { key1: "value1", key2: "value2", }
     newdict[g:one_global_var] = "one global"
-    s:bar = 22
+    s:bar = 'donkey'
+    s:bar = 'cow'
     return newdict
 enddef
 

@@ -73,7 +73,7 @@ export def TransformBuffer(...bufnr: list<string>)
     endif
 
     # Re-compact b: w: t: g: v: a:, s: e.g. from 'b : foo' to 'b:foo'.
-    transformed_line = transformed_line->substitute('\(\W\|^\)\([asbwtgv]\)\s*:\s*', '\1\2:', 'g')
+    transformed_line = transformed_line->substitute('\(\W\|^\)\([asbwtgvl]\)\s*:\s*', '\1\2:', 'g')
 
 
     # ------------------------ let management ---------------------------
@@ -88,10 +88,10 @@ export def TransformBuffer(...bufnr: list<string>)
 
       if transformed_line =~ '^\s*let\s'
         # Store variable name without 'let'.
-        var var_name = transformed_line->matchlist('\v\s*let\s+([sabwtgv]:)?(\w+)\W')[1 : 2]->join('')
+        var var_name = transformed_line->matchlist('\v\s*let\s+([sabwtgvl]:)?(\w+)\W')[1 : 2]->join('')
         # echom var_name
 
-        # Remove 'let' from all the lines containing variables, with the exception of s: and
+        # Remove 'let' from all the lines containing variables, with the exception of s:, l: and
         # '' (e.g. 'let foo'). The latter because 'let foo" can be either
         # global or function scoped and must be handled in both cases
         if var_name =~ '^[bwtgv]:'
@@ -102,26 +102,26 @@ export def TransformBuffer(...bufnr: list<string>)
         # For 'let foo' you need 'g:' or 'var', depending where 'let foo' appears
         # Script scope
         if !inside_function
-          if var_name =~ '^s:'
+          if var_name =~ '\v^(s:|l:)'
             if index(already_declared_script_local_vars, var_name) == -1
               transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
               add(already_declared_script_local_vars, var_name)
             elseif index(already_declared_script_local_vars, var_name) != -1
               transformed_line = transformed_line->substitute('let\s\+', '', '')
             endif
-          elseif var_name !~ '^[sabwtgv]: '
+          elseif var_name !~ '^[sabwtgvl]: '
             transformed_line = transformed_line->substitute('let\s\+', 'g:', '')
           endif
         # Function scope
         else
-          if var_name =~ '^s:'
+          if var_name =~ '\v^(s:|l:)'
             if index(already_declared_function_local_vars, var_name) == -1 && index(already_declared_script_local_vars, var_name) == -1
               transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
               add(already_declared_function_local_vars, var_name)
             else
               transformed_line = transformed_line->substitute('let\s\+', '', '')
             endif
-          elseif var_name !~ '^[sabwtgv]:'
+          elseif var_name !~ '^[sabwtgvl]:'
             if index(already_declared_function_local_vars, var_name) == -1
               transformed_line = transformed_line->substitute('let\s\+', 'var ', '')
               add(already_declared_function_local_vars, var_name)

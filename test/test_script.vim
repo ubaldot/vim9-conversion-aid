@@ -86,6 +86,10 @@ function PrintSomeText()
         echom A.BAR
     let b:one_buffer_var=-66
     endif
+
+    let l:one_local_var='elephant'
+    echo l:one_local_var
+    let l:one_local_var ='tiger'
 endfunc
 
 " Define a function that takes a dictionary as an argument and prints its content
@@ -102,13 +106,16 @@ function! UpdateDict(dict, key, value) abort
     let a:dict[a:key]= a:value
     let b:another_buffer_var=33
     let one_script_var ='monkey'
+    let l:one_local_var='dog'
+    let l:one_local_var='kitten'
 endfunction
 
 " Define a function that returns a dictionary
 func! CreateDict() abort
     let newdict = #{ key1: "value1", key2: "value2", }
     let newdict[g:one_global_var]= "one global"
-    let s:bar = 22
+    let s:bar = 'donkey'
+    let s:bar = 'cow'
     return newdict
 endfunction
 
