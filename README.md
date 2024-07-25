@@ -22,26 +22,51 @@ What it is supposed to do:
 - ... and more.
 
 There is only one command available which is `Vim9Convert` that takes a buffer
-as optional argument.
+as optional arguments.
 
-To be on the safe side, start Vim with `vim --clean` and then source the
-plugin manually (i.e.
-`:source /path/to/vim9-conversion-aid/plugin/vim9-conversion-aid.vim`), and
-then use `Vim9Convert`.
+The various `let` around won't be converted automatically, but you have to set
+`g:vim9_conversion_aid_fix_let = true`. However, this feature **fix the
+variables definitions, but not their usage.** For example, if at script level
+you have the following statement:
 
-At this point, if you source the converted script you will most likely have
-errors, but the error messages should tell you what shall be fixed and how.
-Also, mind that `:h vim9` can be a great support for fixing the remaining
-errors if you really don't know how.
+```
+let newdict = CreateDict()
+call PrintDictContent(newdict)
+```
 
-If you add a couple of lines on top of your legacy script, then you can
-perform a line-by-line comparison between the old and the converted script.
-(Tip: use `:set scrollbind` or `:diffthis` on both the buffers.)
+it will be converted to the following:
+
+```
+g:newdict = CreateDict()
+PrintDictContent(newdict)
+```
+
+i.e. the argument to the function call shall be manually fixed.
+
+Finally, `a:, l:` and `s:` are not removed automatically. In this way you can
+better inspect if your script semantic is still valid. You can run a simple
+`:%s/\v(a:|s:|l:)//g` once done.
+
+It is recommended to use the tool with a clean `.vimrc` file. That is, you can
+start Vim with `vim --clean` and then source the plugin manually (e.g.
+`:source /path/to/vim9-conversion-aid/plugin/vim9-conversion-aid.vim` or you
+can just download the `vim9-conversion-aid.vim` file and source it), and then
+use `Vim9Convert`.
+
+The converted file will most likely have errors, but the error messages should
+tell you what shall be fixed and how. Also, mind that `:h vim9` can be a great
+support for fixing the remaining errors if you really don't know how.
+
+Finally, if you add a couple of lines on top of your legacy script, then you
+can perform an eye-candy line-by-line comparison between the old and the
+converted script. (Tip: use `:set scrollbind` or `:diffthis` on both buffers.)
 
 To see how the tool perform the upgrade you can take a look at the
 `./test/test_script.vim` and `./test/expected_script.vim` scripts. As you will
 see, some manual work is still required, but the starting point is rather
-favorable compared to starting from scratch.
+favorable compared to starting from scratch. Note that
+`./test/test_script.vim` does not do anything special, it has been written
+with the sole purpose of hitting a reasonable amount of corners.
 
 ## Limitations
 
@@ -65,49 +90,14 @@ let s:a = 3
   have a leading and a trailer white-space,
 - functions with variable number of arguments won't be fixed,
 - it won't remove `eval`,
-- lambda expressions will not be fixed,
+- lambda expressions will not be converted in the new format,
 - Vim9 syntax/semantics updates and datatypes shall be handled manually.
 
 ... but there is certainly more that you will need to fix manually. If you
 find bugs or have improvements suggestions, please open an issue or send a PR.
 In the latter case, don't forget to update the tests.
 
-To circumnavigate some of the above limitations, you can prepare your script
-to don't hit the above limitations. Plus, avoid using script-local variable
-names that shadow vim builtin keywords (e.g. avoid to call a variable
-`let s:vertical` because `vertical` is a builtin keyword.
-
-## `let`
-
-The Vim9 upgrading of `let` defined variables is a bit tricky, yet the tool
-tries to do its best to make it. However, by default, the `let` conversion is
-disabled. You can enable it by setting `g:vim9_conversion_aid_fix_let = true`.
-
-Such a feature removes all the `let` statements, and the variables
-declarations are adjusted by further taking into account their scope.
-
-However, this feature **fix the variables definitions, but not their usage.**
-For example, if at script level you have the following statement:
-
-```
-let newdict = CreateDict()
-call PrintDictContent(newdict)
-```
-
-it will be converted to the following:
-
-```
-g:newdict = CreateDict()
-PrintDictContent(newdict)
-```
-
-i.e. the argument to the function call shall be manually fixed.
-
-## `a:, l:` and `s:`
-
-Given that variables names can be easily shadowed, we decided to keep `s:, l:`
-and `a:` to help you in checking if your script semantic is still valid, and
-eventually perform the necessary adjustments Once done, you can remove the
-`s:, l:`and the `a:` with a simple `:%s/\v(a:|s:|l:)//g`. Nevertheless, the
-best would be if you prepare your script by avoiding potential variables
-shadowing.
+To circumnavigate some of the above limitations, prepare your script to don't
+hit the above limitations. Plus, avoid using script-local variable names that
+shadow vim builtin keywords (e.g. avoid to call a variable `let s:vertical`
+because `vertical` is a builtin keyword.
