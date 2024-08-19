@@ -27,7 +27,7 @@ def RunTests()
     v:errors = []
     v:errmsg = ''
     try
-      :%bw!
+      # :%bw!
       exe $'g:{f}'
     catch
       add(v:errors, $'Error: Test {f} failed with exception {v:exception} at {v:throwpoint}')
@@ -45,6 +45,7 @@ def RunTests()
 enddef
 
 try
+	echom "UBA"
   exe $'source {g:TestName}'
   RunTests()
 catch

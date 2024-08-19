@@ -6,6 +6,11 @@ vim9script
 import "./common.vim"
 var WaitForAssert = common.WaitForAssert
 
+var plugin_root = fnamemodify(getcwd(), ':h')
+&runtimepath = &runtimepath .. "," .. plugin_root
+&runtimepath = &runtimepath .. "," .. plugin_root .. "/after"
+filetype plugin on
+exe "source " .. plugin_root .. "/after/ftplugin/vim.vim"
 
 # Tests start here
 def g:Test_converted_script()
