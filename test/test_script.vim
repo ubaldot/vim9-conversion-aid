@@ -23,7 +23,7 @@ let   g:one_list_slice=s:one_list[s:one_const  :    9]
 let   one_script_var='name'
 let b:one_buffer_var=-99
 
-echom v:args
+echom v:argv
 
 " Test leading-trailing white-space around comparison operators
 echom s:bar=='blueberry'
