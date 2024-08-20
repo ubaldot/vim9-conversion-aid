@@ -69,7 +69,7 @@ export def TransformBuffer(...bufnr: list<string>)
         # Remove line continuation
         ->substitute('\v(^\s*)\\', '\1', '')
         # Replace v:true, v:false with true, false
-        ->substitute('v:[true, false]', '\0'[2 : ], 'g')
+        ->substitute('\vv:\s(true|false)', '\1', 'g')
     endif
 
     # Re-compact b: w: t: g: v: a:, s: e.g. from 'b : foo' to 'b:foo'.
