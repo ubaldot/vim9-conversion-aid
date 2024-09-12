@@ -3,9 +3,13 @@ vim9script
 export def TransformBuffer(...bufnr: list<string>)
 
   var fix_let = false
+  var fix_asl = false
 
   if exists('g:vim9_conversion_aid_fix_let')
     fix_let = g:vim9_conversion_aid_fix_let
+  endif
+  if exists('g:vim9_conversion_aid_fix_asl')
+    fix_asl = g:vim9_conversion_aid_fix_asl
   endif
 
   var source_bufnr = bufnr('%')
@@ -134,7 +138,7 @@ export def TransformBuffer(...bufnr: list<string>)
     endif
 
 
-    if exists(g:vim9_conversion_aid_fix_asl) && g:vim9_conversion_aid_fix_asl
+    if fix_asl
       transformed_line = transformed_line->substitute('\v(a:|l:|s:):', '', 'g')
     endif
 

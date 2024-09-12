@@ -21,7 +21,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 REM Check test results
-echo REPLICA unit test results
+echo VIM9-CONVERSION-AID unit test results
 type results.txt
 
 REM Check for FAIL in results.txt
