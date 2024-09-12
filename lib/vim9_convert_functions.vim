@@ -2,15 +2,8 @@ vim9script
 
 export def TransformBuffer(...bufnr: list<string>)
 
-  var fix_let = false
-  var fix_asl = false
-
-  if exists('g:vim9_conversion_aid_fix_let')
-    fix_let = g:vim9_conversion_aid_fix_let
-  endif
-  if exists('g:vim9_conversion_aid_fix_asl')
-    fix_asl = g:vim9_conversion_aid_fix_asl
-  endif
+  var fix_let = get(g:, 'vim9_conversion_aid_fix_let', false)
+  var fix_asl = get(g:, 'vim9_conversion_aid_fix_asl', false)
 
   var source_bufnr = bufnr('%')
   if empty(source_bufnr)
