@@ -133,11 +133,13 @@ export def TransformBuffer(...bufnr: list<string>)
       endif
     endif
 
-      # Also, get rid off the old s: and a:.
-      # transformed_line = transformed_line->substitute('\v(s:|a:)', '', 'g')
 
-      # Append the transformed line to the list
-      add(transformed_lines, transformed_line)
+    if exists(g:vim9_conversion_aid_fix_asl) && g:vim9_conversion_aid_fix_asl
+      transformed_line = transformed_line->substitute('\v(a:|l:|s:):', '', 'g')
+    endif
+
+    # Append the transformed line to the list
+    add(transformed_lines, transformed_line)
   endfor
   # echom already_declared_script_local_vars
 

@@ -45,7 +45,8 @@ i.e. the argument to the function call shall be manually fixed.
 
 Finally, `a:, l:` and `s:` are not removed automatically. In this way you can
 better inspect if your script semantic is still valid. You can run a simple
-`:%s/\v(a:|s:|l:)//g` once done.
+`:%s/\v(a:|s:|l:)//g` once done or, if you want that to happen automatically,
+you can set `g:vim9_conversion_aid_fix_asl = true`.
 
 It is recommended to use the tool with a clean `.vimrc` file. That is, you can
 start Vim with `vim --clean` and then source the plugin manually (e.g.
