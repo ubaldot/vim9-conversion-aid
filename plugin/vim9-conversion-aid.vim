@@ -6,13 +6,18 @@ if !has('vim9script') ||  v:version < 900
     finish
 endif
 
+var DEBUG = false
+
 def Echoerr(msg: string)
   echohl ErrorMsg | echom $'[vim9-conversion-aid] {msg}' | echohl None
 enddef
 
 if exists('g:vim9_conversion_aid_loaded')
+  if DEBUG
     Echoerr('Plugin already loaded')
-    finish
+  endif
+
+  finish
 endif
 g:vim9_conversion_aid_loaded = true
 
