@@ -1,73 +1,56 @@
 # vim9-conversion-aid
 
-A little help for upgrading to Vim9.
-
-The tool is nothing but an aid to convert legacy Vim scripts to Vim 9
-language.
-
-<!-- It does not make miracles, nor it is bullet proof, it is certainly -->
-<!-- buggy and have a questionable design, but it may help you in speeding up the -->
-<!-- conversion process. -->
-
-It does not make miracles, nor it is bullet proof, but it may help you in
-speeding up the conversion process.
-
-What it is supposed to do:
+A little help for upgrading to Vim9 by converting legacy Vim to Vim 9
+script.
+No miracles, nor bullet proof, but giving a head start in the conversion process by a `:Vim9Convert` (that operates either on the current or supplied buffer) command to
 
 - replace all occurrences of `func`, `function`, etc. with `def` and `enddef`,
 - replace comment string `"` with `#`,
 - replace `v:true, v:false` with `true, false`,
 - add leading/trailing space to `=` and to comparison signs as needed,
-- Remove line continuation symbol `\`,
-- ... and more.
+- remove line continuation symbol `\`,
+- ... and so much more.
 
-There is only one command available which is `Vim9Convert` that takes a buffer
-as optional arguments.
+## Caveats
 
-The various `let` around won't be converted automatically, you have to set
-`g:vim9_conversion_aid_fix_let = true`. However, this feature **fix the
-variables definitions, but not their usage.** For example, if at script level
-you have the following statement:
+The `let` commands won't be converted automatically unless you set `g:vim9_conversion_aid_fix_let = true`, though rather **fix the
+variables definitions, but not their usage.**
 
+For example, if at script level you have the following statement:
 ```
 let newdict = CreateDict()
 call PrintDictContent(newdict)
 ```
-
-it will be converted to the following:
-
+then it will be converted to the following:
 ```
 g:newdict = CreateDict()
 PrintDictContent(newdict)
 ```
+That is, the argument to the function call shall be manually fixed.
 
-i.e. the argument to the function call shall be manually fixed.
+Finally, in a similar vein, neither are `a:`, `l:` and `s:` removed automatically.
 
-Finally, `a:, l:` and `s:` are not removed automatically. In this way you can
-better inspect if your script semantic is still valid. You can run a simple
-`:%s/\v(a:|s:|l:)//g` once done or, if you want that to happen automatically,
-you can set `g:vim9_conversion_aid_fix_asl = true`.
+This way, you can better inspect if your script semantic is still valid.
+Once done inspecting, run a simple `:%s/\v(a:|s:|l:)//g`.
 
-It is recommended to use the tool with a clean `.vimrc` file. That is, you can
-start Vim with `vim --clean` and then source the plugin manually (e.g.
-`:source /path/to/vim9-conversion-aid/plugin/vim9-conversion-aid.vim` or you
-can just download the `vim9-conversion-aid.vim` file and source it), and then
-use `Vim9Convert`.
+Or, if you still prefer that to happen automatically, you can set `g:vim9_conversion_aid_fix_asl = true`.
 
-The converted file will most likely have errors, but the error messages should
-tell you what shall be fixed and how. Also, mind that `:h vim9` can be a great
-support for fixing the remaining errors if you really don't know how.
+## Usage
 
-Finally, if you add a couple of lines on top of your legacy script, then you
-can perform an eye-candy line-by-line comparison between the old and the
-converted script. (Tip: use `:set scrollbind` or `:diffthis` on both buffers.)
+<!-- It is recommended to use the tool with a clean `.vimrc` file. -->
+<!-- That is, you can start Vim with `vim --clean` and then source the plugin manually (e.g. `:source /path/to/vim9-conversion-aid/plugin/vim9-conversion-aid.vim` or you can just download the `vim9-conversion-aid.vim` file and source it), and then use `Vim9Convert`. -->
 
-To see how the tool perform the upgrade you can take a look at the
-`./test/test_script.vim` and `./test/expected_script.vim` scripts. As you will
-see, some manual work is still required, but the starting point is rather
-favorable compared to starting from scratch. Note that
-`./test/test_script.vim` does not do anything special, it has been written
-with the sole purpose of hitting a reasonable amount of corners.
+The converted file will most likely have errors, but the error messages should tell you what shall be fixed and how.
+Also, mind that `:h vim9` can be a great support for fixing the remaining errors if you really don't know how.
+
+You can line-by-line compare the old and converted script by opening them next to each other and running `windo setlocal scrollbind diffthis`.
+
+## Testing
+
+To see how the tool perform the upgrade you can take a look at the `./test/test_script.vim` and `./test/expected_script.vim` scripts.
+
+As you will see, some manual work is still required, but the starting point is rather favorable compared to starting from scratch.
+Note that `./test/test_script.vim` does not do anything special, it has been written with the sole purpose of hitting a reasonable amount of corners.
 
 ## Limitations
 
