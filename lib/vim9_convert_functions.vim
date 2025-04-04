@@ -10,7 +10,8 @@ export def TransformBuffer(...bufnr: list<string>)
     source_bufnr = bufnr(bufnr[0])
   endif
 
-  vertical new
+  vnew
+  setlocal filetype=vim
   # UBA
   # setlocal bufhidden=wipe
   var new_bufnr = bufnr('%')
